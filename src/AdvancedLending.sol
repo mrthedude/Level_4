@@ -42,7 +42,7 @@ error userIsNotEligibleForLiquidation();
 error exactBorrowerDebtMustBeRepaidInLiquidation();
 
 /**
- * @title advancedLending
+ * @title AdvancedLending
  * @notice This contract allows users to deposit an ERC20 token, borrow against the deposited tokens with ETH as collateral, withdraw deposited tokens or ETH,
  * and liquidate users whos LTV falls below the set COLLATERAL_RATIO
  * @dev This contract integrates a Chainlink price feed for ETH/USD to maintain LTV's, this contract does not incorporate interest rates on lending or borrowing
