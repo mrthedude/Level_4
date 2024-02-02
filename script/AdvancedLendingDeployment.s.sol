@@ -25,12 +25,13 @@ contract tokenDeployer is Script {
 //     }
 // }
 
-// contract AdvancedLendingDeployer is Script {
-//     function run() public returns (AdvancedLending) {
-//         address tokenAddress = /**NEED TO INSERT TOKEN ADDRESS */;
-//         vm.startBroadcast();
-//         AdvancedLending advancedLending = new AdvancedLending(/**NEED TO INSERT FUNCTION VARIABLE FOR TOKEN ADDRESS */, 0x6bF14CB0A831078629D993FDeBcB182b21A8774C);
-//         vm.stopBroadcast();
-//         return advancedLending;
-//     }
-// }
+contract AdvancedLendingDeployer is Script {
+    function run() public returns (AdvancedLending) {
+        address tokenAddress = 0xdd74f39b130298EE194a12bE0eDCE18f1D8Fb36a;
+        address ethUsdPriceFeed = 0x6bF14CB0A831078629D993FDeBcB182b21A8774C;
+        vm.startBroadcast();
+        AdvancedLending advancedLending = new AdvancedLending(tokenAddress, ethUsdPriceFeed);
+        vm.stopBroadcast();
+        return advancedLending;
+    }
+}
