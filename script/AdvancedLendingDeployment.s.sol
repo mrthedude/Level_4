@@ -15,15 +15,17 @@ contract tokenDeployer is Script {
     }
 }
 
-// contract testCollateralLendingDeployer is Script, tokenDeployer {
-//     function testRun() public returns (AdvancedLending) {
-//         token testToken = tokenDeployer.run();
-//         vm.startBroadcast();
-//         AdvancedLending advancedLending = new AdvancedLending(address(testToken), /**NEED TO INSERT MOCK PRICE FEED */);
-//         vm.stopBroadcast();
-//         return advancedLending;
-//     }
-// }
+contract testAdvancedLendingDeployer is Script, HelperConfig {
+    function run() public returns (AdvancedLending, token) {
+        token testToken = new token();
+        HelperConfig helperConfig = new HelperConfig();
+        address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
+        vm.startBroadcast();
+        AdvancedLending advancedLending = new AdvancedLending(address(testToken), ethUsdPriceFeed);
+        vm.stopBroadcast();
+        return (advancedLending, testToken);
+    }
+}
 
 contract AdvancedLendingDeployer is Script {
     function run() public returns (AdvancedLending) {
