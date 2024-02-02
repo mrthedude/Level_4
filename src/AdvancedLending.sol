@@ -45,9 +45,9 @@ error exactBorrowerDebtMustBeRepaidInLiquidation();
  * @title advancedLending
  * @notice This contract allows users to deposit an ERC20 token, borrow against the deposited tokens with ETH as collateral, withdraw deposited tokens or ETH,
  * and liquidate users whos LTV falls below the set COLLATERAL_RATIO
- * @dev This contract integrates a Chainlink price feed for ETH to maintain LTV's, this contract does not incorporate interest rates on lending or borrowing
+ * @dev This contract integrates a Chainlink price feed for ETH/USD to maintain LTV's, this contract does not incorporate interest rates on lending or borrowing
  */
-contract advancedLending {
+contract AdvancedLending {
     using SafeERC20 for IERC20;
 
     /// @notice ERC20 token that the contract uses for borrowing and lending
@@ -56,16 +56,16 @@ contract advancedLending {
     /// @notice Represents the minimum LTV ratio a borrower can have before becoming eligible for liquidation
     uint256 public constant COLLATERAL_RATIO = 150; // 150% LTV
 
-    /// @dev ETH/USD price feed using Chainlink
+    /// @dev Chainlink ETH/USD price feed
     AggregatorV3Interface private immutable i_priceFeed;
 
-    /// @dev mapping tracking lenders' deposited token balances
+    /// @dev Mapping tracking lenders' deposited token balances
     mapping(address lender => uint256 amount) private lenderBalance;
 
-    /// @dev mapping tracking borrowers' token balances
+    /// @dev Mapping tracking borrowers' token balances
     mapping(address borrower => uint256 amount) private borrowerBalance;
 
-    /// @dev mapping for tracking users' deposited ETH balances to update LTV's
+    /// @dev Mapping tracking users' deposited ETH balances
     mapping(address collateralDepositor => uint256 collateralAmount) private collateralDepositBalance;
 
     event lendingPoolIncreased(
@@ -100,8 +100,8 @@ contract advancedLending {
 
     /**
      * @notice This constructor function sets the token contract and Chainlink price feed on deployment
-     * @param tokenContract The ERC20 token contract that advancedLending can use for lending and borrowing
-     * @param priceFeed The contract address for the Chainlink ETH/USD price feed
+     * @param tokenContract The ERC20 token that this contract uses for lending and borrowing
+     * @param priceFeed The address for the Chainlink ETH/USD price feed
      */
     constructor(address tokenContract, address priceFeed) {
         i_token = IERC20(tokenContract);
@@ -109,7 +109,8 @@ contract advancedLending {
     }
 
     /**
-     * @notice Allows contract to receive Ether without calling a function and emits an event on who deposited, the ETH amount, and the contract's total ETH balance
+     * @notice Allows this contract to receive Ether without calling a function
+     * @notice Emits an event on who deposited, the ETH amount, and the contract's total ETH balance
      * @dev Updates a user's collateralDepositBalance
      */
     receive() external payable {
@@ -117,7 +118,7 @@ contract advancedLending {
         emit ethDepositedIntoContract(msg.sender, msg.value, address(this).balance);
     }
 
-    /// @notice Throws an error when a function call is made to the contract that does not match any function signatures
+    /// @notice Throws an error when a function call is made to this contract that does not match any function signatures
     fallback() external {
         revert contractCallNotRecognized();
     }
@@ -155,13 +156,12 @@ contract advancedLending {
     }
 
     /**
-     * @notice A function that allows users to borrow deposited tokens with ETH collateral that they deposited in the contract, limited by the amount of tokens in the
-     * contract and the user's LTV
-     * @notice LTV is based off of current ETH price in USD (via Chainlink oracle) and how many tokens are being borrowed
-     * @notice Emits an event on who borrowed tokens, the token amount, and the borrower's updated health factor
+     * @notice A function that allows users to borrow tokens if they deposit ETH collateral into this contract, the borrow amount is
+     * limited by the amount of tokens in the contract and the user's LTV ratio
+     * @notice LTV is based off of current ETH/USD price (via a Chainlink price feed) and how many tokens are being borrowed
+     * @notice Emits an event on who borrowed tokens, the amount borrowed, and the borrower's updated health factor
      * @param tokenAmount The amount of tokens to be borrowed
-     * @dev User's borrowed balance and collateral deposit balance both update upon a successful function call
-     * @dev Updates a user's borrowerBalance and their collateralDepositBalance
+     * @dev Updates a user's borrowerBalance and collateralDepositBalance
      */
     function borrowTokenWithCollateral(uint256 tokenAmount) external payable cannotBeZero(tokenAmount) {
         if (
@@ -178,8 +178,8 @@ contract advancedLending {
 
     /**
      * @notice A function that allows users to repay borrowed tokens
-     * @notice A user's collateral becomes available for withdrawl when their loan is completely paid off
-     * @notice Emits an event on who repaid the tokens, the amount of tokens repaid, and the user's remaining borrowerBalance
+     * @notice A user's ETH collateral becomes available for withdrawl when their loan is completely paid off
+     * @notice Emits an event on who repaid the tokens, the amount repaid, and the user's remaining borrowerBalance
      * @param tokenAmount The amount of tokens used to repay an outstanding loan
      * @dev Updates a user's borrowerBalance
      */
@@ -194,9 +194,9 @@ contract advancedLending {
 
     /**
      * @notice A function that allows users to withdraw their ETH collateral if they don't have an outstanding loan
-     * @notice Emits an event on who withdrew collateral, the amount of collateral withdrawn, and the remaining collateralDepositBalance of the user
+     * @notice Emits an event on who withdrew collateral, the amount withdrawn, and the user's remaining collateralDepositBalance
      * @param collateralAmount The amount of ETH collateral to be withdrawn
-     * @dev Updates the user's collateralDepositBalance by subracting collateralAmount from the initial balance
+     * @dev Updates the user's collateralDepositBalance
      */
     function withdrawCollateral(uint256 collateralAmount) external cannotBeZero(collateralAmount) {
         if (borrowerBalance[msg.sender] != 0) {
@@ -211,12 +211,13 @@ contract advancedLending {
     }
 
     /**
-     * @notice A function that allows users to liquidate other users' loans whos LTVs have fallen below the required COLLATERAL_RATIO
+     * @notice A function that allows users to liquidate other users' loans whos LTV ratios have fallen below the required COLLATERAL_RATIO
      * @notice This function ensures that the contract stays solvent and lenders do not incure losses from borrowers with near-undercollateralized loans
      * @notice Emits an event on who was liquidated, the amount of tokens repaid in the liquidation, and the amount of ETH liquidated
      * @param borrower The address of the user with an outstanding loan that is eligible to be liquidated
      * @param loanAmount The amount of tokens borrowed in the now unhealthy loan
      * @dev Updates the liquidated user's borrowerBalance and collateralDepositBalance to 0
+     * @dev Transfers the liquidated user's ETH collateral to the msg.sender of the liquidate function
      */
     function liquidate(address borrower, uint256 loanAmount) external {
         if (getUserHealthFactor(borrower) >= COLLATERAL_RATIO * 1e18) {
@@ -239,7 +240,7 @@ contract advancedLending {
     }
 
     /**
-     * @notice A function that allows anyone to retrieve the health factor of a specified address
+     * @notice A function that retrieves the health factor of a user
      * @param user Address of the user whos health factor is being queried
      * @dev healthfactor is 18 decimals
      */
@@ -249,7 +250,7 @@ contract advancedLending {
         cannotBeZero(borrowerBalance[user])
         returns (uint256 healthFactor)
     {
-        uint256 ethBorrowedInUsd = priceConverter.getEthConversionRate(collateralDepositBalance[user], i_priceFeed);
-        healthFactor = ethBorrowedInUsd * 1e18 / borrowerBalance[user] * 100;
+        uint256 ethCollateralInUsd = priceConverter.getEthConversionRate(collateralDepositBalance[user], i_priceFeed);
+        healthFactor = ethCollateralInUsd * 1e18 / borrowerBalance[user] * 100;
     }
 }
