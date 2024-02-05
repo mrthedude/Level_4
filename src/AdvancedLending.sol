@@ -51,7 +51,7 @@ contract AdvancedLending {
     using SafeERC20 for IERC20;
 
     /// @notice ERC20 token that the contract uses for borrowing and lending
-    IERC20 public immutable i_token;
+    IERC20 private immutable i_token;
 
     /// @notice Represents the minimum LTV ratio a borrower can have before becoming eligible for liquidation
     uint256 public constant COLLATERAL_RATIO = 150; // 150% LTV
@@ -252,5 +252,9 @@ contract AdvancedLending {
     {
         uint256 ethCollateralInUsd = priceConverter.getEthConversionRate(collateralDepositBalance[user], i_priceFeed);
         healthFactor = ethCollateralInUsd * 1e18 / borrowerBalance[user] * 100;
+    }
+
+    function getTokenAddress() public view returns (address tokenAddress) {
+        tokenAddress = address(i_token);
     }
 }
