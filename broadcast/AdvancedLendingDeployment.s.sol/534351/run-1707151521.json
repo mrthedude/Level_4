@@ -19,49 +19,18 @@
       "isFixedGasLimit": false
     }
   ],
-  "receipts": [
-    {
-      "transactionHash": "0xe0addd2b6798b60de5e1801112fccaba05a16bc530f6b182030654fa135555a7",
-      "transactionIndex": "0x0",
-      "blockHash": "0xaed9e20518ce85c76ed65df492dc08e5969262cacec365a24b383e07f0c88a99",
-      "blockNumber": "0x2cceb8",
-      "from": "0x6a571992ECaaDe9df63334BACEdD46C7C78e3Ef9",
-      "to": null,
-      "cumulativeGasUsed": "0x88409",
-      "gasUsed": "0x88409",
-      "contractAddress": "0xD5af936D0C613ed3aA1508C61eBdbFaDf9409916",
-      "logs": [
-        {
-          "address": "0xD5af936D0C613ed3aA1508C61eBdbFaDf9409916",
-          "topics": [
-            "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
-            "0x0000000000000000000000000000000000000000000000000000000000000000",
-            "0x0000000000000000000000006a571992ecaade9df63334bacedd46c7c78e3ef9"
-          ],
-          "data": "0x00000000000000000000000000000000000000000000152d02c7e14af6800000",
-          "blockHash": "0xaed9e20518ce85c76ed65df492dc08e5969262cacec365a24b383e07f0c88a99",
-          "blockNumber": "0x2cceb8",
-          "transactionHash": "0xe0addd2b6798b60de5e1801112fccaba05a16bc530f6b182030654fa135555a7",
-          "transactionIndex": "0x0",
-          "logIndex": "0x0",
-          "removed": false
-        }
-      ],
-      "status": "0x1",
-      "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000200000000000000000000002000000000000000000000000000000000000000000000000008000004000000000000000020000000000000000000000000020020000000000000000800000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002000000000000000000000000000000000000000000000000000020000000000000000000000001000000000000000000000000000000000000000000",
-      "type": "0x0",
-      "effectiveGasPrice": "0x8a79380"
-    }
-  ],
+  "receipts": [],
   "libraries": [],
-  "pending": [],
+  "pending": [
+    "0xe0addd2b6798b60de5e1801112fccaba05a16bc530f6b182030654fa135555a7"
+  ],
   "returns": {
     "0": {
       "internal_type": "contract token",
       "value": "0xD5af936D0C613ed3aA1508C61eBdbFaDf9409916"
     }
   },
-  "timestamp": 1707151545,
+  "timestamp": 1707151521,
   "chain": 534351,
   "multi": false,
   "commit": "4b34f0d"
