@@ -17,23 +17,23 @@ contract tokenDeployer is Script {
 
 contract testAdvancedLendingDeployer is Script, HelperConfig {
     function run() public returns (AdvancedLending, token) {
-        token testToken = new token();
+        token myToken = new token();
         HelperConfig helperConfig = new HelperConfig();
         address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
         vm.startBroadcast();
-        AdvancedLending advancedLending = new AdvancedLending(address(testToken), ethUsdPriceFeed);
+        AdvancedLending advancedLending = new AdvancedLending(myToken, ethUsdPriceFeed);
         vm.stopBroadcast();
-        return (advancedLending, testToken);
+        return (advancedLending, myToken);
     }
 }
 
-contract AdvancedLendingDeployer is Script {
-    function run() public returns (AdvancedLending) {
-        address tokenAddress = 0xdd74f39b130298EE194a12bE0eDCE18f1D8Fb36a;
-        address ethUsdPriceFeed = 0x6bF14CB0A831078629D993FDeBcB182b21A8774C;
-        vm.startBroadcast();
-        AdvancedLending advancedLending = new AdvancedLending(tokenAddress, ethUsdPriceFeed);
-        vm.stopBroadcast();
-        return advancedLending;
-    }
-}
+// contract AdvancedLendingDeployer is Script {
+//     function run() public returns (AdvancedLending) {
+//         address tokenAddress = 0xdd74f39b130298EE194a12bE0eDCE18f1D8Fb36a;
+//         address ethUsdPriceFeed = 0x6bF14CB0A831078629D993FDeBcB182b21A8774C;
+//         vm.startBroadcast();
+//         AdvancedLending advancedLending = new AdvancedLending(tokenAddress, ethUsdPriceFeed);
+//         vm.stopBroadcast();
+//         return advancedLending;
+//     }
+// }
