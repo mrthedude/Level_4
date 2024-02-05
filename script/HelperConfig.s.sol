@@ -7,8 +7,8 @@ import {Script} from "forge-std/Script.sol";
 contract HelperConfig is Script {
     NetworkConfig public activeNetworkConfig;
 
-    uint8 public constant DECIMALS = 8;
-    int256 public constant INITIAL_PRICE = 2000e8;
+    uint8 public constant DECIMALS = 8; // 8;
+    int256 public constant INITIAL_PRICE = 2000e8; // 2000e8;
 
     struct NetworkConfig {
         address priceFeed;

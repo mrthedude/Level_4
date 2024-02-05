@@ -30,17 +30,6 @@ import {priceConverter} from "./priceConverter.sol";
 import {AggregatorV3Interface} from
     "chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
-error amountCannotBeZero();
-error notEnoughTokensInContractForWithdrawl();
-error userHasNotDepositedEnoughTokensToMatchThisWithdrawlRequest();
-error contractCallNotRecognized();
-error repaymentAmountIsGreaterThanTheAmountOfTokensBorrowed();
-error borrowAmountWillCauseLoanToBeBelowTheRequiredCollateralRatio();
-error cannotWithdrawCollateralWithAnOpenLoan();
-error withdrawlFailed();
-error userIsNotEligibleForLiquidation();
-error exactBorrowerDebtMustBeRepaidInLiquidation();
-
 /**
  * @title AdvancedLending
  * @notice This contract allows users to deposit an ERC20 token, borrow against the deposited tokens with ETH as collateral, withdraw deposited tokens or ETH,
@@ -48,6 +37,17 @@ error exactBorrowerDebtMustBeRepaidInLiquidation();
  * @dev This contract integrates a Chainlink price feed for ETH/USD to maintain LTV's, this contract does not incorporate interest rates on lending or borrowing
  */
 contract AdvancedLending {
+    error amountCannotBeZero();
+    error notEnoughTokensInContractForWithdrawl();
+    error userHasNotDepositedEnoughTokensToMatchThisWithdrawlRequest();
+    error contractCallNotRecognized();
+    error repaymentAmountIsGreaterThanTheAmountOfTokensBorrowed();
+    error borrowAmountWillCauseLoanToBeBelowTheRequiredCollateralRatio();
+    error cannotWithdrawCollateralWithAnOpenLoan();
+    error withdrawlFailed();
+    error userIsNotEligibleForLiquidation();
+    error exactBorrowerDebtMustBeRepaidInLiquidation();
+
     using SafeERC20 for IERC20;
 
     /// @notice ERC20 token that the contract uses for borrowing and lending
@@ -131,8 +131,8 @@ contract AdvancedLending {
      * @dev Updates a user's lenderBalance
      */
     function depositToken(uint256 amount) external cannotBeZero(amount) {
-        i_token.safeTransferFrom(msg.sender, address(this), amount);
         lenderBalance[msg.sender] += amount;
+        i_token.safeTransferFrom(msg.sender, address(this), amount);
         emit lendingPoolIncreased(msg.sender, amount, i_token.balanceOf(address(this)));
     }
 
@@ -150,8 +150,8 @@ contract AdvancedLending {
         if (lenderBalance[msg.sender] < amount) {
             revert userHasNotDepositedEnoughTokensToMatchThisWithdrawlRequest();
         }
-        i_token.safeTransfer(msg.sender, amount);
         lenderBalance[msg.sender] -= amount;
+        i_token.safeTransfer(msg.sender, amount);
         emit lenderWithdrewTokens(msg.sender, amount, i_token.balanceOf(address(this)));
     }
 
@@ -254,7 +254,26 @@ contract AdvancedLending {
         healthFactor = ethCollateralInUsd * 1e18 / borrowerBalance[user] * 100;
     }
 
+    /// @notice Getter function to retrieve the contract address of i_token
     function getTokenAddress() public view returns (address tokenAddress) {
         tokenAddress = address(i_token);
+    }
+
+    /// @notice Getter function to retrieve the lenderBalance[] of a user
+    /// @param lender The address of the User who's data is being queried
+    function getLenderBalance(address lender) public view returns (uint256 balance) {
+        balance = lenderBalance[lender];
+    }
+
+    /// @notice Getter function to retrieve the collateralDepositBalance of a user
+    /// @param lender The address of the user who's data is being queried
+    function getCollateralDepositBalance(address lender) public view returns (uint256 balance) {
+        balance = collateralDepositBalance[lender];
+    }
+
+    /// @notice Getter function to retrieve the borrowerBalance of a user
+    /// @param borrower The address of the user who's data is being queried
+    function getBorrowerBalance(address borrower) public view returns (uint256 balance) {
+        balance = borrowerBalance[borrower];
     }
 }

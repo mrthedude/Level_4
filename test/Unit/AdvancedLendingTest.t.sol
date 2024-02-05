@@ -13,10 +13,157 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
     HelperConfig public helperConfig;
     address public contractOwner;
     uint256 public STARTING_USER_BALANCE = 10 ether;
+    address USER1 = address(1);
+    address USER2 = address(2);
+    uint256 ethDecimals = 10 ** 18;
+    uint256 MAX_TOKEN_SUPPLY = 100000;
+    uint256 MOCK_ETH_PRICE = 2000e18;
 
     function setUp() external {
         testAdvancedLendingDeployer deployer = new testAdvancedLendingDeployer();
         contractOwner = address(deployer);
+        vm.deal(USER1, STARTING_USER_BALANCE);
+        vm.deal(USER2, STARTING_USER_BALANCE);
+        vm.deal(contractOwner, STARTING_USER_BALANCE);
         (advancedLending, myToken) = deployer.run();
+    }
+
+    /////////////// Testing receive() ///////////////
+    function testFuzz_contractReceivesETH(uint256 amount) public {
+        vm.assume(amount < 10);
+        vm.prank(USER1);
+        (bool success,) = address(advancedLending).call{value: amount * ethDecimals}("");
+        require(success, "transfer failed");
+        assertEq(address(advancedLending).balance, amount * ethDecimals);
+    }
+
+    function testFuzz_collateralDepositBalanceIncreasesByEthAmount(uint256 amount) public {
+        vm.assume(amount < 10 ether);
+        vm.startPrank(contractOwner);
+        (bool success,) = address(advancedLending).call{value: amount}("");
+        require(success, "transfer failed");
+        assertEq(advancedLending.getCollateralDepositBalance(contractOwner), amount);
+    }
+
+    /////////////// Testing depositToken(uint256 amount) ///////////////
+    function test_revertWhen_depositAmountIsZero() public {
+        vm.startPrank(contractOwner);
+        vm.expectRevert(AdvancedLending.amountCannotBeZero.selector);
+        advancedLending.depositToken(0);
+        vm.stopPrank();
+    }
+
+    function testFuzz_lenderBalanceIncreasesByDepositAmount(uint256 amount) public {
+        vm.assume(amount != 0 && amount < 10);
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), amount * ethDecimals);
+        advancedLending.depositToken(amount * ethDecimals);
+        assertEq(advancedLending.getLenderBalance(contractOwner), amount * ethDecimals);
+    }
+
+    function testFuzz_contractTokenBalanceIncreasesByDepositAmount(uint256 amount) public {
+        vm.assume(amount != 0 && amount < 100000);
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), amount * ethDecimals);
+        advancedLending.depositToken(amount * ethDecimals);
+        assertEq(myToken.balanceOf(address(advancedLending)), amount * ethDecimals);
+        vm.stopPrank();
+    }
+
+    /////////////// Testing withdrawToken(uint256 amount) ///////////////
+    function test_revertWhen_withdrawAmountIsZero() public {
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), 10e18);
+        advancedLending.depositToken(10e18);
+        vm.expectRevert(AdvancedLending.amountCannotBeZero.selector);
+        advancedLending.withdrawToken(0);
+        vm.stopPrank();
+    }
+
+    function test_revertWhen_withdrawlAmountExceedsContractBalance() public {
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), 5e18);
+        advancedLending.depositToken(5e18);
+        vm.expectRevert(AdvancedLending.notEnoughTokensInContractForWithdrawl.selector);
+        advancedLending.withdrawToken(6e18);
+        vm.stopPrank();
+    }
+
+    function test_revertWhen_withdrawlAmountIsGreaterThanDepositAmount() public {
+        vm.startPrank(contractOwner);
+        myToken.transfer(USER1, 10e18);
+        myToken.approve(address(advancedLending), 10e18);
+        advancedLending.depositToken(10e18);
+        vm.stopPrank();
+        vm.startPrank(USER1);
+        myToken.approve(address(advancedLending), 1e18);
+        advancedLending.depositToken(1e18);
+        vm.expectRevert(AdvancedLending.userHasNotDepositedEnoughTokensToMatchThisWithdrawlRequest.selector);
+        advancedLending.withdrawToken(10e18);
+        vm.stopPrank();
+    }
+
+    function testFuzz_lenderBalanceUpdatesWithWithdrawAmount(uint256 amount) public {
+        vm.assume(amount != 0 && amount < 100000);
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), amount * ethDecimals);
+        advancedLending.depositToken(amount * ethDecimals);
+        advancedLending.withdrawToken(amount * ethDecimals);
+        assertEq(advancedLending.getLenderBalance(contractOwner), 0);
+        vm.stopPrank();
+    }
+
+    function testFuzz_contractTokenBalanceDecreasesByWithdrawlAmount(uint256 amount) public {
+        vm.assume(amount != 0 && amount < 100000);
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), amount * ethDecimals);
+        advancedLending.depositToken(amount * ethDecimals);
+        advancedLending.withdrawToken(amount * ethDecimals);
+        assertEq(myToken.balanceOf(contractOwner), 100000 * ethDecimals);
+        vm.stopPrank();
+    }
+
+    /////////////// Testing borrowTokenWithCollateral(uint256 tokenAmount) ///////////////
+    function test_revertWhen_borrowAmountIsZero() public {
+        vm.startPrank(contractOwner);
+        vm.expectRevert(AdvancedLending.amountCannotBeZero.selector);
+        advancedLending.borrowTokenWithCollateral{value: 1 ether}(0);
+        vm.stopPrank();
+    }
+
+    function test_revertWhen_borrowingTokensCausesLoanToBeBelowTheRequiredCollateralRatio() public {
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), 10e18);
+        advancedLending.depositToken(10e18);
+        vm.stopPrank();
+        vm.startPrank(USER1);
+        vm.expectRevert(AdvancedLending.borrowAmountWillCauseLoanToBeBelowTheRequiredCollateralRatio.selector);
+        advancedLending.borrowTokenWithCollateral{value: 0.0075 ether}(10.1e18);
+        vm.stopPrank();
+    }
+
+    function testFuzz_collateralDepositBalanceIncreasesWhenEthIsDepositedToBorrow(uint256 ethAmount) public {
+        vm.assume(ethAmount > 0.0075e18 && ethAmount < STARTING_USER_BALANCE);
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), 10e18);
+        advancedLending.depositToken(10e18);
+        vm.stopPrank();
+        vm.startPrank(USER1);
+        advancedLending.borrowTokenWithCollateral{value: ethAmount}(10e18);
+        assertEq(advancedLending.getCollateralDepositBalance(USER1), ethAmount);
+        vm.stopPrank();
+    }
+
+    function testFuzz_borrowBalanceIncreasesByBorrowedAmount(uint256 tokenAmount) public {
+        vm.assume(tokenAmount > 0 && tokenAmount < 13333e18);
+        vm.startPrank(contractOwner);
+        myToken.transfer(USER1, 100e18);
+        myToken.approve(address(advancedLending), 100e18);
+        advancedLending.depositToken(100e18);
+        vm.stopPrank();
+        vm.startPrank(USER1);
+        advancedLending.borrowTokenWithCollateral{value: 10e18}(tokenAmount);
+        vm.stopPrank();
+        assertEq(advancedLending.getBorrowerBalance(USER1), tokenAmount);
     }
 }
