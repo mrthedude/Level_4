@@ -12,7 +12,6 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
     token public myToken;
     HelperConfig public helperConfig;
     address public contractOwner;
-    uint256 public STARTING_USER_BALANCE = 10 ether;
 
     function setUp() external {
         testAdvancedLendingDeployer deployer = new testAdvancedLendingDeployer();
