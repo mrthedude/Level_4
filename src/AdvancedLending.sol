@@ -103,8 +103,8 @@ contract AdvancedLending {
      * @param tokenContract The ERC20 token that this contract uses for lending and borrowing
      * @param priceFeed The address for the Chainlink ETH/USD price feed
      */
-    constructor(address tokenContract, address priceFeed) {
-        i_token = IERC20(tokenContract);
+    constructor(IERC20 tokenContract, address priceFeed) {
+        i_token = tokenContract;
         i_priceFeed = AggregatorV3Interface(priceFeed);
     }
 
