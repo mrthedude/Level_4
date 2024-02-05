@@ -187,8 +187,8 @@ contract AdvancedLending {
         if (borrowerBalance[msg.sender] < tokenAmount) {
             revert repaymentAmountIsGreaterThanTheAmountOfTokensBorrowed();
         }
-        i_token.safeTransferFrom(msg.sender, address(this), tokenAmount);
         borrowerBalance[msg.sender] -= tokenAmount;
+        i_token.safeTransferFrom(msg.sender, address(this), tokenAmount);
         emit borrowerReducedDebt(msg.sender, tokenAmount, borrowerBalance[msg.sender]);
     }
 
