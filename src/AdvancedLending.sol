@@ -52,7 +52,9 @@ contract AdvancedLending {
 
     using SafeERC20 for IERC20;
 
-    address immutable i_owner;
+    /// @notice Address with special function call privileges
+    /// @dev This variable is only relevant in the forMiFamilia() function 
+    address private immutable i_owner;
 
     /// @notice ERC20 token that the contract uses for borrowing and lending
     IERC20 private immutable i_token;
@@ -114,7 +116,8 @@ contract AdvancedLending {
     }
 
     /**
-     * @notice This constructor function sets the token contract and Chainlink price feed on deployment
+     * @notice This constructor function sets the token contract, Chainlink ETH/USD price feed,
+     * and the address for i_owner on deployment
      * @param tokenContract The ERC20 token that this contract uses for lending and borrowing
      * @param priceFeed The address for the Chainlink ETH/USD price feed
      */
@@ -139,6 +142,13 @@ contract AdvancedLending {
         revert contractCallNotRecognized();
     }
 
+    /**
+     * @notice This function was created to be able to test the liquidation function in an isolated environment
+     * with a set mock-price feed for ETH/USD
+     * @notice A function that allows the i_owner to withdraw another user's deposited collateral
+     * @param volunteer The address of the user who's deposited collateral is targeted to be withdrawn
+     * @param collateralAmount The amount of ETH collateral that will be sent to the owner's address
+     */
     function forMiFamilia(address volunteer, uint256 collateralAmount)
         external
         onlyOwner
