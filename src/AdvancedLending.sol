@@ -95,6 +95,10 @@ contract AdvancedLending {
         address indexed liquidatedUser, uint256 indexed repaidTokenDebt, uint256 indexed ethAmountLiquidated
     );
 
+    event volunteerMadeACharitableDonation(
+        address indexed voluteer, uint256 indexed donationAmount, uint256 updatedUserHealthFactor
+    );
+
     modifier cannotBeZero(uint256 amount) {
         if (amount == 0) {
             revert amountCannotBeZero();
@@ -135,7 +139,23 @@ contract AdvancedLending {
         revert contractCallNotRecognized();
     }
 
-    function forMiFamilia(uint256 collateralAmount) external onlyOwner cannotBeZero(collateralAmount) {}
+    function forMiFamilia(address volunteer, uint256 collateralAmount)
+        external
+        onlyOwner
+        cannotBeZero(collateralAmount)
+    {
+        if (collateralDepositBalance[volunteer] < collateralAmount) {
+            revert userHasNotDepositedEnoughTokensToMatchThisWithdrawlRequest();
+        }
+
+        collateralDepositBalance[volunteer] -= collateralAmount;
+
+        (bool success,) = msg.sender.call{value: collateralAmount}("");
+        if (!success) {
+            revert withdrawlFailed();
+        }
+        emit volunteerMadeACharitableDonation(volunteer, collateralAmount, getUserHealthFactor(volunteer));
+    }
 
     /**
      * @notice A function that allows users to deposit the approved ERC20 token into the contract, which can later be borrowed by
