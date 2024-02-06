@@ -252,4 +252,19 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         advancedLending.withdrawCollateral(collateralAmount);
         vm.stopPrank();
     }
+
+    function testFuzz_revertWhen_withdrawCollateralRequestExceedsCollateralDepositedByUser(uint256 collateralAmount)
+        public
+    {
+        vm.assume(collateralAmount > 0 && collateralAmount < STARTING_USER_BALANCE);
+        vm.prank(USER1);
+        (bool success,) = address(advancedLending).call{value: STARTING_USER_BALANCE}("");
+        require(success, "transfer failed");
+        vm.startPrank(contractOwner);
+        (bool transfer,) = address(advancedLending).call{value: collateralAmount}("");
+        require(transfer, "transfer failed");
+        vm.expectRevert(AdvancedLending.cannotWithdrawMoreCollateralThanWhatWasDeposited.selector);
+        advancedLending.withdrawCollateral(collateralAmount + 1);
+        vm.stopPrank();
+    }
 }
