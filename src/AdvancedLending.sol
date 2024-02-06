@@ -47,6 +47,7 @@ contract AdvancedLending {
     error withdrawlFailed();
     error userIsNotEligibleForLiquidation();
     error exactBorrowerDebtMustBeRepaidInLiquidation();
+    error cannotWithdrawMoreCollateralThanWhatWasDeposited();
 
     using SafeERC20 for IERC20;
 
@@ -201,6 +202,10 @@ contract AdvancedLending {
     function withdrawCollateral(uint256 collateralAmount) external cannotBeZero(collateralAmount) {
         if (borrowerBalance[msg.sender] != 0) {
             revert cannotWithdrawCollateralWithAnOpenLoan();
+        }
+
+        if (collateralDepositBalance[msg.sender] < collateralAmount) {
+            revert cannotWithdrawMoreCollateralThanWhatWasDeposited();
         }
         (bool success,) = msg.sender.call{value: collateralAmount}("");
         if (!success) {
