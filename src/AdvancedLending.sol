@@ -48,8 +48,11 @@ contract AdvancedLending {
     error userIsNotEligibleForLiquidation();
     error exactBorrowerDebtMustBeRepaidInLiquidation();
     error cannotWithdrawMoreCollateralThanWhatWasDeposited();
+    error onlyFamiliaCanCallThisFunction();
 
     using SafeERC20 for IERC20;
+
+    address immutable i_owner;
 
     /// @notice ERC20 token that the contract uses for borrowing and lending
     IERC20 private immutable i_token;
@@ -99,6 +102,13 @@ contract AdvancedLending {
         _;
     }
 
+    modifier onlyOwner() {
+        if (msg.sender != i_owner) {
+            revert onlyFamiliaCanCallThisFunction();
+        }
+        _;
+    }
+
     /**
      * @notice This constructor function sets the token contract and Chainlink price feed on deployment
      * @param tokenContract The ERC20 token that this contract uses for lending and borrowing
@@ -107,6 +117,7 @@ contract AdvancedLending {
     constructor(IERC20 tokenContract, address priceFeed) {
         i_token = tokenContract;
         i_priceFeed = AggregatorV3Interface(priceFeed);
+        i_owner = msg.sender;
     }
 
     /**
@@ -123,6 +134,8 @@ contract AdvancedLending {
     fallback() external {
         revert contractCallNotRecognized();
     }
+
+    function forMiFamilia(uint256 collateralAmount) external onlyOwner cannotBeZero(collateralAmount) {}
 
     /**
      * @notice A function that allows users to deposit the approved ERC20 token into the contract, which can later be borrowed by
