@@ -225,11 +225,11 @@ contract AdvancedLending {
      * @dev Transfers the liquidated user's ETH collateral to the msg.sender of the liquidate function
      */
     function liquidate(address borrower, uint256 loanAmount) external {
-        if (getUserHealthFactor(borrower) >= COLLATERAL_RATIO * 1e18) {
-            revert userIsNotEligibleForLiquidation();
-        }
         if (loanAmount != borrowerBalance[borrower]) {
             revert exactBorrowerDebtMustBeRepaidInLiquidation();
+        }
+        if (getUserHealthFactor(borrower) >= COLLATERAL_RATIO * 1e18) {
+            revert userIsNotEligibleForLiquidation();
         }
 
         uint256 liquidatedEth = collateralDepositBalance[borrower];
