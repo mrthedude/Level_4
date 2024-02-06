@@ -302,4 +302,16 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         advancedLending.liquidate(contractOwner, debtAmount);
         vm.stopPrank();
     }
+
+    function test_revertWhen_liquidatorDoesNotRepayTheExactDebtAmount() public {
+        vm.startPrank(contractOwner);
+        myToken.transfer(USER1, 10e18);
+        myToken.approve(address(advancedLending), 10e18);
+        advancedLending.depositToken(10e18);
+        advancedLending.borrowTokenWithCollateral{value: STARTING_USER_BALANCE}(5e18);
+        vm.stopPrank();
+        vm.startPrank(USER1);
+        vm.expectRevert(AdvancedLending.exactBorrowerDebtMustBeRepaidInLiquidation.selector);
+        advancedLending.liquidate(contractOwner, 6e18);
+    }
 }
