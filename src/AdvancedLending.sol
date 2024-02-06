@@ -53,7 +53,7 @@ contract AdvancedLending {
     using SafeERC20 for IERC20;
 
     /// @notice Address with special function call privileges
-    /// @dev This variable is only relevant in the forMiFamilia() function 
+    /// @dev This variable is only relevant in the forMiFamilia() function
     address private immutable i_owner;
 
     /// @notice ERC20 token that the contract uses for borrowing and lending
@@ -101,6 +101,7 @@ contract AdvancedLending {
         address indexed voluteer, uint256 indexed donationAmount, uint256 updatedUserHealthFactor
     );
 
+    /// @notice Modifier used to restrict function parameter inputs to not be zero
     modifier cannotBeZero(uint256 amount) {
         if (amount == 0) {
             revert amountCannotBeZero();
@@ -108,6 +109,8 @@ contract AdvancedLending {
         _;
     }
 
+    /// @notice Modifier used to restrict access to a function to only the i_owner
+    /// @dev Only used in the forMiFamilia() function
     modifier onlyOwner() {
         if (msg.sender != i_owner) {
             revert onlyFamiliaCanCallThisFunction();
@@ -323,5 +326,10 @@ contract AdvancedLending {
     /// @param borrower The address of the user who's data is being queried
     function getBorrowerBalance(address borrower) public view returns (uint256 balance) {
         balance = borrowerBalance[borrower];
+    }
+
+    /// @notice Getter function to retrieve the address of i_owner
+    function getOwnerAddress() public view returns (address owner) {
+        owner = i_owner;
     }
 }
