@@ -277,4 +277,14 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         vm.stopPrank();
         assertEq(advancedLending.getCollateralDepositBalance(USER1), 0);
     }
+
+    function testFuzz_collateralWithdrawIsSentToTheUser(uint256 collateralAmount) public {
+        vm.assume(collateralAmount > 0 && collateralAmount < STARTING_USER_BALANCE);
+        vm.startPrank(USER1);
+        (bool success,) = address(advancedLending).call{value: collateralAmount}("");
+        require(success, "transfer failed");
+        advancedLending.withdrawCollateral(collateralAmount);
+        vm.stopPrank();
+        assertEq(USER1.balance, STARTING_USER_BALANCE);
+    }
 }
