@@ -207,11 +207,11 @@ contract AdvancedLending {
         if (collateralDepositBalance[msg.sender] < collateralAmount) {
             revert cannotWithdrawMoreCollateralThanWhatWasDeposited();
         }
+        collateralDepositBalance[msg.sender] -= collateralAmount;
         (bool success,) = msg.sender.call{value: collateralAmount}("");
         if (!success) {
             revert withdrawlFailed();
         }
-        collateralDepositBalance[msg.sender] -= collateralAmount;
         emit userWithdrawCollateral(msg.sender, collateralAmount, collateralDepositBalance[msg.sender]);
     }
 
