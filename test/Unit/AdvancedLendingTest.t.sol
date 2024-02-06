@@ -219,4 +219,16 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         vm.stopPrank();
         assertEq(advancedLending.getBorrowerBalance(contractOwner), 5e18);
     }
+
+    function testFuzz_repaymentTokensAreTransferredToContract(uint256 tokenAmount) public {
+        vm.assume(tokenAmount > 0 && tokenAmount < 12000e18);
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), MAX_TOKEN_SUPPLY);
+        advancedLending.depositToken(MAX_TOKEN_SUPPLY);
+        advancedLending.borrowTokenWithCollateral{value: 9 ether}(tokenAmount);
+        myToken.approve(address(advancedLending), tokenAmount);
+        advancedLending.repayToken(tokenAmount);
+        vm.stopPrank();
+        assertEq(myToken.balanceOf(address(advancedLending)), MAX_TOKEN_SUPPLY);
+    }
 }
