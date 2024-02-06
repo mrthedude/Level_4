@@ -231,4 +231,14 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         vm.stopPrank();
         assertEq(myToken.balanceOf(address(advancedLending)), MAX_TOKEN_SUPPLY);
     }
+
+    /////////////// Testing withdrawCollateral(uint256 collateralAmount) ///////////////
+    function test_revertWhen_collateralAmountToWithdrawIsZero() public {
+        vm.startPrank(contractOwner);
+        (bool success,) = address(advancedLending).call{value: 1 ether}("");
+        require(success, "transfer failed");
+        vm.expectRevert(AdvancedLending.amountCannotBeZero.selector);
+        advancedLending.withdrawCollateral(0);
+        vm.stopPrank();
+    }
 }
