@@ -287,4 +287,19 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         vm.stopPrank();
         assertEq(USER1.balance, STARTING_USER_BALANCE);
     }
+
+    /////////////// Testing liquidate(address borrower, uint256 loanAmount) ///////////////
+    function testFuzz_revertWhen_userIsNotEligibleForLiquidation(uint256 debtAmount) public {
+        vm.assume(debtAmount > 0 && debtAmount < 13333.333333e18);
+        vm.startPrank(contractOwner);
+        myToken.transfer(USER1, debtAmount);
+        myToken.approve(address(advancedLending), debtAmount);
+        advancedLending.depositToken(debtAmount);
+        advancedLending.borrowTokenWithCollateral{value: STARTING_USER_BALANCE}(debtAmount);
+        vm.stopPrank();
+        vm.startPrank(USER1);
+        vm.expectRevert(AdvancedLending.userIsNotEligibleForLiquidation.selector);
+        advancedLending.liquidate(contractOwner, debtAmount);
+        vm.stopPrank();
+    }
 }
