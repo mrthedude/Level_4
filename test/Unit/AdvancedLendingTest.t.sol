@@ -241,4 +241,15 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         advancedLending.withdrawCollateral(0);
         vm.stopPrank();
     }
+
+    function testFuzz_revertWhen_withdrawCollateralIsCalledWithAnOpenLoan(uint256 collateralAmount) public {
+        vm.assume(collateralAmount > 0 && collateralAmount > 0.00075e18 && collateralAmount < STARTING_USER_BALANCE);
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), MAX_TOKEN_SUPPLY);
+        advancedLending.depositToken(MAX_TOKEN_SUPPLY);
+        advancedLending.borrowTokenWithCollateral{value: collateralAmount}(1e18);
+        vm.expectRevert(AdvancedLending.cannotWithdrawCollateralWithAnOpenLoan.selector);
+        advancedLending.withdrawCollateral(collateralAmount);
+        vm.stopPrank();
+    }
 }
