@@ -344,6 +344,13 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
     }
 
     /////////////// Testing liquidate(address borrower, uint256 loanAmount) ///////////////
+    function test_revertWhen_calledWithZeroLoanAmount() public {
+        vm.startPrank(contractOwner);
+        vm.expectRevert(AdvancedLending.amountCannotBeZero.selector);
+        advancedLending.liquidate(USER1, 0);
+        vm.stopPrank();
+    }
+
     function testFuzz_revertWhen_userIsNotEligibleForLiquidation(uint256 debtAmount) public {
         vm.assume(debtAmount > 0 && debtAmount < 13333.333333e18);
         vm.startPrank(contractOwner);
