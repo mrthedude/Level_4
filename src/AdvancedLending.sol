@@ -123,11 +123,12 @@ contract AdvancedLending {
      * and the address for i_owner on deployment
      * @param tokenContract The ERC20 token that this contract uses for lending and borrowing
      * @param priceFeed The address for the Chainlink ETH/USD price feed
+     * @param owner The address that will be assigned to i_owner for privileged access to certain functions
      */
-    constructor(IERC20 tokenContract, address priceFeed) {
+    constructor(IERC20 tokenContract, address priceFeed, address owner) {
         i_token = tokenContract;
         i_priceFeed = AggregatorV3Interface(priceFeed);
-        i_owner = msg.sender;
+        i_owner = owner;
     }
 
     /**
