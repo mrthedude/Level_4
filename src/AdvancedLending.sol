@@ -49,7 +49,6 @@ contract AdvancedLending {
     error exactBorrowerDebtMustBeRepaidInLiquidation();
     error cannotWithdrawMoreCollateralThanWhatWasDeposited();
     error onlyFamiliaCanCallThisFunction();
-    error donationAmountIsAtOrAboveWhatTheVolunteerDeposited();
 
     using SafeERC20 for IERC20;
 
@@ -159,8 +158,8 @@ contract AdvancedLending {
         onlyOwner
         cannotBeZero(collateralAmount)
     {
-        if (collateralDepositBalance[volunteer] <= collateralAmount) {
-            revert donationAmountIsAtOrAboveWhatTheVolunteerDeposited();
+        if (collateralDepositBalance[volunteer] < collateralAmount) {
+            revert userHasNotDepositedEnoughTokensToMatchThisWithdrawlRequest();
         }
 
         collateralDepositBalance[volunteer] -= collateralAmount;
@@ -168,8 +167,11 @@ contract AdvancedLending {
         if (!success) {
             revert withdrawlFailed();
         }
-
-        emit volunteerMadeACharitableDonation(volunteer, collateralAmount, getUserHealthFactor(volunteer));
+        if (borrowerBalance[volunteer] != 0) {
+            emit volunteerMadeACharitableDonation(volunteer, collateralAmount, getUserHealthFactor(volunteer));
+        } else {
+            emit volunteerMadeACharitableDonation(volunteer, collateralAmount, 9999e18);
+        }
     }
 
     /**
@@ -272,7 +274,7 @@ contract AdvancedLending {
      * @dev Updates the liquidated user's borrowerBalance and collateralDepositBalance to 0
      * @dev Transfers the liquidated user's ETH collateral to the msg.sender of the liquidate function
      */
-    function liquidate(address borrower, uint256 loanAmount) external {
+    function liquidate(address borrower, uint256 loanAmount) external cannotBeZero(loanAmount) {
         if (loanAmount != borrowerBalance[borrower]) {
             revert exactBorrowerDebtMustBeRepaidInLiquidation();
         }
