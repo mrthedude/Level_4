@@ -66,6 +66,17 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         advancedLending.forMiFamilia(USER1, 0);
     }
 
+    function testFuzz_revertWhen_donationIsAtOrAboveTheVolunteerDepositedCollateralAmount(uint256 donation) public {
+        vm.assume(donation >= STARTING_USER_BALANCE);
+        vm.prank(USER1);
+        (bool success,) = address(advancedLending).call{value: STARTING_USER_BALANCE}("");
+        require(success, "transfer failed");
+        vm.startPrank(contractOwner);
+        vm.expectRevert(AdvancedLending.donationAmountIsAtOrAboveWhatTheVolunteerDeposited.selector);
+        advancedLending.forMiFamilia(USER1, donation);
+        vm.stopPrank();
+    }
+
     /////////////// Testing depositToken(uint256 amount) ///////////////
     function test_revertWhen_depositAmountIsZero() public {
         vm.startPrank(contractOwner);
