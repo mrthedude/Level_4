@@ -445,4 +445,13 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         vm.expectRevert(AdvancedLending.amountCannotBeZero.selector);
         advancedLending.getUserHealthFactor(contractOwner);
     }
+
+    function test_functionHealthFactorAccuracy() public {
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), 100e18);
+        advancedLending.depositToken(100e18);
+        advancedLending.borrowTokenWithCollateral{value: STARTING_USER_BALANCE}(100e18);
+        vm.stopPrank();
+        assertEq(advancedLending.getUserHealthFactor(contractOwner), 20000e18);
+    }
 }
