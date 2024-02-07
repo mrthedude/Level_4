@@ -406,4 +406,34 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         vm.stopPrank();
         assertEq(contractOwner.balance, STARTING_USER_BALANCE + 1 ether);
     }
+
+    function test_borrowerBalanceIsZeroAfterLiquiation() public {
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), 100e18);
+        advancedLending.depositToken(100e18);
+        vm.stopPrank();
+        vm.prank(USER1);
+        advancedLending.borrowTokenWithCollateral{value: 1 ether}(100e18);
+        vm.startPrank(contractOwner);
+        advancedLending.forMiFamilia(USER1, 0.926 ether);
+        myToken.approve(address(advancedLending), 100e18);
+        advancedLending.liquidate(USER1, 100e18);
+        vm.stopPrank();
+        assertEq(advancedLending.getBorrowerBalance(USER1), 0);
+    }
+
+    function test_collateralDepositBalanceIsZeroAfterLiquiation() public {
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), 100e18);
+        advancedLending.depositToken(100e18);
+        vm.stopPrank();
+        vm.prank(USER1);
+        advancedLending.borrowTokenWithCollateral{value: 1 ether}(100e18);
+        vm.startPrank(contractOwner);
+        advancedLending.forMiFamilia(USER1, 0.926 ether);
+        myToken.approve(address(advancedLending), 100e18);
+        advancedLending.liquidate(USER1, 100e18);
+        vm.stopPrank();
+        assertEq(advancedLending.getCollateralDepositBalance(USER1), 0);
+    }
 }
