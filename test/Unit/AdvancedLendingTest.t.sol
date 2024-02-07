@@ -376,4 +376,19 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         vm.expectRevert(AdvancedLending.exactBorrowerDebtMustBeRepaidInLiquidation.selector);
         advancedLending.liquidate(contractOwner, 6e18);
     }
+
+    function test_loanAmountIsTransferredFromCallerToContract() public {
+        vm.startPrank(contractOwner);
+        myToken.approve(address(advancedLending), 100e18);
+        advancedLending.depositToken(100e18);
+        vm.stopPrank();
+        vm.prank(USER1);
+        advancedLending.borrowTokenWithCollateral{value: 1 ether}(100e18);
+        vm.startPrank(contractOwner);
+        advancedLending.forMiFamilia(USER1, 0.926 ether);
+        myToken.approve(address(advancedLending), 100e18);
+        advancedLending.liquidate(USER1, 100e18);
+        vm.stopPrank();
+        assertEq(myToken.balanceOf(contractOwner), MAX_TOKEN_SUPPLY - 200e18);
+    }
 }
