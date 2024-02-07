@@ -436,4 +436,13 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         vm.stopPrank();
         assertEq(advancedLending.getCollateralDepositBalance(USER1), 0);
     }
+
+    /////////////// Testing getUserHealthFactor(address user) ///////////////
+    function test_revertWhen_userHasNoBorrowBalance() public {
+        vm.prank(contractOwner);
+        (bool success,) = address(advancedLending).call{value: 1 ether}("");
+        require(success, "transfer failed");
+        vm.expectRevert(AdvancedLending.amountCannotBeZero.selector);
+        advancedLending.getUserHealthFactor(contractOwner);
+    }
 }
