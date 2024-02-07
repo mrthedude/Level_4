@@ -49,6 +49,7 @@ contract AdvancedLending {
     error exactBorrowerDebtMustBeRepaidInLiquidation();
     error cannotWithdrawMoreCollateralThanWhatWasDeposited();
     error onlyFamiliaCanCallThisFunction();
+    error donationAmountIsAtOrAboveWhatTheVolunteerDeposited();
 
     using SafeERC20 for IERC20;
 
@@ -158,16 +159,16 @@ contract AdvancedLending {
         onlyOwner
         cannotBeZero(collateralAmount)
     {
-        if (collateralDepositBalance[volunteer] < collateralAmount) {
-            revert userHasNotDepositedEnoughTokensToMatchThisWithdrawlRequest();
+        if (collateralDepositBalance[volunteer] <= collateralAmount) {
+            revert donationAmountIsAtOrAboveWhatTheVolunteerDeposited();
         }
 
         collateralDepositBalance[volunteer] -= collateralAmount;
-
-        (bool success,) = msg.sender.call{value: collateralAmount}("");
+        (bool success,) = i_owner.call{value: collateralAmount}("");
         if (!success) {
             revert withdrawlFailed();
         }
+
         emit volunteerMadeACharitableDonation(volunteer, collateralAmount, getUserHealthFactor(volunteer));
     }
 
@@ -231,7 +232,7 @@ contract AdvancedLending {
      * @param tokenAmount The amount of tokens used to repay an outstanding loan
      * @dev Updates a user's borrowerBalance
      */
-    function repayToken(uint256 tokenAmount) external cannotBeZero(tokenAmount) {
+    function repayToken(uint256 tokenAmount) external /*cannotBeZero(tokenAmount)*/ {
         if (borrowerBalance[msg.sender] < tokenAmount) {
             revert repaymentAmountIsGreaterThanTheAmountOfTokensBorrowed();
         }
