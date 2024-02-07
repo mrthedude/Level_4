@@ -15,8 +15,8 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
 
     function setUp() external {
         testAdvancedLendingDeployer deployer = new testAdvancedLendingDeployer();
-        contractOwner = address(deployer);
         (advancedLending, myToken) = deployer.run();
+        contractOwner = advancedLending.getOwnerAddress();
     }
 
     function test_contractAndTokenDeployment() public {
@@ -26,7 +26,6 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
     function test_tokenDeploymentMatchesTokenContract() public {
         address tokenContract = advancedLending.getTokenAddress();
         address tokenDeployed = address(myToken);
-        console.log(tokenContract, tokenDeployed);
         assertEq(tokenContract, tokenDeployed);
     }
 }
