@@ -6,22 +6,13 @@ import {token} from "../src/ERC20_token.sol";
 import {AdvancedLending} from "../src/AdvancedLending.sol";
 import {HelperConfig} from "./HelperConfig.s.sol";
 
-contract tokenDeployer is Script {
-    function run() public returns (token) {
-        vm.startBroadcast();
-        token myToken = new token(msg.sender);
-        vm.stopBroadcast();
-        return myToken;
-    }
-}
-
-contract testAdvancedLendingDeployer is Script, HelperConfig {
+contract AdvancedLendingDeployer is Script, HelperConfig {
     function run() public returns (AdvancedLending, token) {
         HelperConfig helperConfig = new HelperConfig();
         address owner = helperConfig.getOwnerAddress();
-        token myToken = new token(owner);
         address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
         vm.startBroadcast();
+        token myToken = new token(owner);
         AdvancedLending advancedLending = new AdvancedLending(myToken, ethUsdPriceFeed, owner);
         vm.stopBroadcast();
         return (advancedLending, myToken);

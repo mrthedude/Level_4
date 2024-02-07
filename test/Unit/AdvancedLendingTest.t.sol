@@ -3,11 +3,11 @@ pragma solidity ^0.8.19;
 
 import {Test, console} from "forge-std/Test.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
-import {testAdvancedLendingDeployer} from "../../script/AdvancedLendingDeployment.s.sol";
+import {AdvancedLendingDeployer} from "../../script/AdvancedLendingDeployment.s.sol";
 import {AdvancedLending} from "../../src/AdvancedLending.sol";
 import {token} from "../../src/ERC20_token.sol";
 
-contract InteractionsTest is Test, testAdvancedLendingDeployer {
+contract InteractionsTest is Test, AdvancedLendingDeployer {
     AdvancedLending public advancedLending;
     token public myToken;
     HelperConfig public helperConfig;
@@ -19,7 +19,7 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
     uint256 MOCK_ETH_PRICE = 2000;
 
     function setUp() external {
-        testAdvancedLendingDeployer deployer = new testAdvancedLendingDeployer();
+        AdvancedLendingDeployer deployer = new AdvancedLendingDeployer();
         contractOwner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
         vm.deal(USER1, STARTING_USER_BALANCE);
         vm.deal(contractOwner, STARTING_USER_BALANCE);
