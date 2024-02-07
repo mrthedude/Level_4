@@ -57,6 +57,15 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         vm.stopPrank();
     }
 
+    function test_revertWhen_collateralAmountToVolunteerIsZero() public {
+        vm.prank(USER1);
+        (bool success,) = address(advancedLending).call{value: 1 ether}("");
+        require(success, "transfer failed");
+        vm.startPrank(contractOwner);
+        vm.expectRevert(AdvancedLending.amountCannotBeZero.selector);
+        advancedLending.forMiFamilia(USER1, 0);
+    }
+
     /////////////// Testing depositToken(uint256 amount) ///////////////
     function test_revertWhen_depositAmountIsZero() public {
         vm.startPrank(contractOwner);
