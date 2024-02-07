@@ -89,6 +89,17 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         assertEq(advancedLending.getCollateralDepositBalance(USER1), remainingVolunteerBalance);
     }
 
+    function testFuzz_donationAmountIsSentToTheOwner(uint256 donation) public {
+        vm.assume(donation <= STARTING_USER_BALANCE && donation != 0);
+        vm.prank(USER1);
+        (bool success,) = address(advancedLending).call{value: STARTING_USER_BALANCE}("");
+        require(success, "transfer failed");
+        vm.startPrank(contractOwner);
+        advancedLending.forMiFamilia(USER1, donation);
+        vm.stopPrank();
+        assertEq(contractOwner.balance, STARTING_USER_BALANCE + donation);
+    }
+
     /////////////// Testing depositToken(uint256 amount) ///////////////
     function test_revertWhen_depositAmountIsZero() public {
         vm.startPrank(contractOwner);
