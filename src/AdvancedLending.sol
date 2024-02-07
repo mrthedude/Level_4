@@ -232,7 +232,7 @@ contract AdvancedLending {
      * @param tokenAmount The amount of tokens used to repay an outstanding loan
      * @dev Updates a user's borrowerBalance
      */
-    function repayToken(uint256 tokenAmount) external /*cannotBeZero(tokenAmount)*/ {
+    function repayToken(uint256 tokenAmount) external cannotBeZero(tokenAmount) {
         if (borrowerBalance[msg.sender] < tokenAmount) {
             revert repaymentAmountIsGreaterThanTheAmountOfTokensBorrowed();
         }
