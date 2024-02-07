@@ -9,7 +9,7 @@ import {HelperConfig} from "./HelperConfig.s.sol";
 contract tokenDeployer is Script {
     function run() public returns (token) {
         vm.startBroadcast();
-        token myToken = new token();
+        token myToken = new token(msg.sender);
         vm.stopBroadcast();
         return myToken;
     }
@@ -17,11 +17,12 @@ contract tokenDeployer is Script {
 
 contract testAdvancedLendingDeployer is Script, HelperConfig {
     function run() public returns (AdvancedLending, token) {
-        token myToken = new token();
         HelperConfig helperConfig = new HelperConfig();
+        address owner = helperConfig.getOwnerAddress();
+        token myToken = new token(owner);
         address ethUsdPriceFeed = helperConfig.activeNetworkConfig();
         vm.startBroadcast();
-        AdvancedLending advancedLending = new AdvancedLending(myToken, ethUsdPriceFeed);
+        AdvancedLending advancedLending = new AdvancedLending(myToken, ethUsdPriceFeed, owner);
         vm.stopBroadcast();
         return (advancedLending, myToken);
     }
