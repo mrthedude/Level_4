@@ -14,16 +14,14 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
     address public contractOwner;
     uint256 public STARTING_USER_BALANCE = 10 ether;
     address USER1 = address(1);
-    address USER2 = address(2);
     uint256 ethDecimals = 10 ** 18;
     uint256 MAX_TOKEN_SUPPLY = 100000e18;
     uint256 MOCK_ETH_PRICE = 2000;
 
     function setUp() external {
         testAdvancedLendingDeployer deployer = new testAdvancedLendingDeployer();
-        contractOwner = address(deployer);
+        contractOwner = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
         vm.deal(USER1, STARTING_USER_BALANCE);
-        vm.deal(USER2, STARTING_USER_BALANCE);
         vm.deal(contractOwner, STARTING_USER_BALANCE);
         (advancedLending, myToken) = deployer.run();
     }
@@ -43,6 +41,20 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         (bool success,) = address(advancedLending).call{value: amount}("");
         require(success, "transfer failed");
         assertEq(advancedLending.getCollateralDepositBalance(contractOwner), amount);
+    }
+
+    /////////////// Testing forMiFamilia(address volunteer, uint256 collateralAmount) ///////////////
+    function testFuzz_revertWhen_functionCallerIsNotTheOwner(address notTheOwner) public {
+        vm.assume(notTheOwner != contractOwner);
+        vm.deal(notTheOwner, STARTING_USER_BALANCE);
+        vm.prank(USER1);
+        (bool success,) = address(advancedLending).call{value: 1 ether}("");
+        require(success, "transfer failed");
+
+        vm.startPrank(notTheOwner);
+        vm.expectRevert(AdvancedLending.onlyFamiliaCanCallThisFunction.selector);
+        advancedLending.forMiFamilia(USER1, 0.1e18);
+        vm.stopPrank();
     }
 
     /////////////// Testing depositToken(uint256 amount) ///////////////
