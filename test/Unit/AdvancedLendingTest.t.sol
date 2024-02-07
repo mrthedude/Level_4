@@ -66,15 +66,27 @@ contract InteractionsTest is Test, testAdvancedLendingDeployer {
         advancedLending.forMiFamilia(USER1, 0);
     }
 
-    function testFuzz_revertWhen_donationIsAtOrAboveTheVolunteerDepositedCollateralAmount(uint256 donation) public {
-        vm.assume(donation >= STARTING_USER_BALANCE);
+    function testFuzz_revertWhen_donationIsAboveTheVolunteerDepositedCollateralAmount(uint256 donation) public {
+        vm.assume(donation > STARTING_USER_BALANCE);
         vm.prank(USER1);
         (bool success,) = address(advancedLending).call{value: STARTING_USER_BALANCE}("");
         require(success, "transfer failed");
         vm.startPrank(contractOwner);
-        vm.expectRevert(AdvancedLending.donationAmountIsAtOrAboveWhatTheVolunteerDeposited.selector);
+        vm.expectRevert(AdvancedLending.userHasNotDepositedEnoughTokensToMatchThisWithdrawlRequest.selector);
         advancedLending.forMiFamilia(USER1, donation);
         vm.stopPrank();
+    }
+
+    function testFuzz_collateralDepositAmountUpdatesWithDepositAmount(uint256 donation) public {
+        vm.assume(donation <= STARTING_USER_BALANCE && donation != 0);
+        uint256 remainingVolunteerBalance = STARTING_USER_BALANCE - donation;
+        vm.prank(USER1);
+        (bool success,) = address(advancedLending).call{value: STARTING_USER_BALANCE}("");
+        require(success, "transfer failed");
+        vm.startPrank(contractOwner);
+        advancedLending.forMiFamilia(USER1, donation);
+        vm.stopPrank();
+        assertEq(advancedLending.getCollateralDepositBalance(USER1), remainingVolunteerBalance);
     }
 
     /////////////// Testing depositToken(uint256 amount) ///////////////
