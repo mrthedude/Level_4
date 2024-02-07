@@ -6,6 +6,6 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract token is ERC20, Ownable {
     constructor(address owner) ERC20("Level4", "LVL_4") Ownable(owner) {
-        _mint(msg.sender, 100000 * 10 ** decimals());
+        _mint(owner, 100000 * 10 ** decimals());
     }
 }
