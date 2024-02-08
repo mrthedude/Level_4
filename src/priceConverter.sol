@@ -5,11 +5,6 @@ import {AggregatorV3Interface} from
     "lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 library priceConverter {
-    /**
-     * Network: Scroll Sepolia
-     * Aggregator: ETH/USD
-     * Address: 0x6bF14CB0A831078629D993FDeBcB182b21A8774C
-     */
     function getEthPrice(AggregatorV3Interface priceFeed) internal view returns (uint256) {
         (, int256 answer,,,) = priceFeed.latestRoundData();
         return uint256(answer * 10000000000);
