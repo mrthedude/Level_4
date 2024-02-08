@@ -23,15 +23,15 @@
 
 pragma solidity ^0.8.19;
 
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
 import {token} from "./ERC20_token.sol";
 import {priceConverter} from "./priceConverter.sol";
 import {AggregatorV3Interface} from
-    "chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+    "lib/chainlink-brownie-contracts/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 /**
- * @title AdvancedLending
+ * @title AdvancedLending lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol
  * @notice This contract allows users to deposit an ERC20 token, borrow against the deposited tokens with ETH as collateral, withdraw deposited tokens or ETH,
  * and liquidate users whos LTV falls below the set COLLATERAL_RATIO
  * @dev This contract integrates a Chainlink price feed for ETH/USD to maintain LTV's, this contract does not incorporate interest rates on lending or borrowing
